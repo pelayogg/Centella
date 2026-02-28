@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Aventura de la Camiseta Mágica</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Header ── */
+        .header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+        }
+        .nav-links a {
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        /* ── Side dots ── */
+        .nav-dots {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 50;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dot.active {
+            background: #1a1a1a;
+            transform: scale(1.3);
+        }
+
+        /* ── PAGE LAYOUT ──
+           Left col: sticky image panel
+           Right col: scrollable content
+        ── */
+        .page-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-top: 60px; /* header height */
+        }
+
+        /* ── LEFT: sticky image column ── */
+        .images-col {
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            background: #f0eeeb;
+            border-right: 1px solid #e8e4df;
+            overflow: hidden; /* clip transitions */
+        }
+
+        /* Each image panel: full size, absolutely stacked */
+        .img-panel {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            gap: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        .img-panel.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .step-indicator {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: #bbb;
+            text-transform: uppercase;
+            align-self: flex-start;
+        }
+
+        .image-wrapper {
+            width: min(380px, 80%);
+            height: min(380px, 80%);
+        }
+
+        .character-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
+            display: block;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: #f0eeeb;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #bbb;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            border: 1.5px dashed #d8d5d0;
+        }
+
+        .placeholder-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* ── RIGHT: scrollable content ── */
+        .content-col {
+            /* just a column, no position needed */
+        }
+
+        /* Each character section in the right col */
+        .character-section {
+            min-height: calc(100vh - 60px);
+            padding: 100px 60px 80px;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .character-section:last-child {
+            border-bottom: none;
+        }
+
+        /* ── Info content (same styles as before) ── */
+        .role-tag {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 16px;
+        }
+        .character-name {
+            font-size: 42px;
+            font-weight: 600;
+            line-height: 1.1;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+        .character-title {
+            font-size: 18px;
+            font-weight: 400;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .divider {
+            width: 40px;
+            height: 1px;
+            background: #1a1a1a;
+            margin: 40px 0;
+        }
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 20px;
+        }
+        .description {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 24px;
+            font-weight: 400;
+        }
+        .power-box {
+            background: #fafafa;
+            padding: 20px 24px;
+            border-radius: 0;
+            margin: 32px 0 0 0;
+            border-top: 1px solid #e8e8e8;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .power-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #bbb;
+            margin-bottom: 8px;
+        }
+        .power-text {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+        .quote-box {
+            background: #fafafa;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            margin: 0;
+        }
+        .quote-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #bbb;
+            margin-bottom: 8px;
+        }
+        .quote {
+            font-size: 15px;
+            font-weight: 300;
+            font-style: italic;
+            color: #333;
+            line-height: 1.7;
+        }
+        .stats-section { margin: 40px 0 0 0; }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .stat-row:first-child { border-top: 1px solid #f0f0f0; }
+        .stat-label {
+            font-size: 14px;
+            color: #555;
+            font-weight: 400;
+        }
+        .stat-stars { display: flex; gap: 2px; }
+        .star { font-size: 16px; line-height: 1; color: #ddd; font-style: normal; }
+        .star.filled { color: #1a1a1a; }
+        .complement-text {
+            background: #fafafa;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            margin-top: 0;
+        }
+        .complement-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #bbb;
+            margin-bottom: 8px;
+        }
+        .complement-body {
+            font-size: 15px;
+            font-weight: 300;
+            color: #333;
+            line-height: 1.7;
+        }
+
+        /* ── Final message ── */
+        .final-message {
+            background: #1a1a1a;
+            color: white;
+            padding: 100px 60px;
+            text-align: center;
+            min-height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .final-message h2 {
+            font-size: 32px;
+            font-weight: 300;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+        .final-message .stars-big {
+            font-size: 48px;
+            letter-spacing: 8px;
+            margin: 20px 0;
+        }
+        .final-message p {
+            font-size: 18px;
+            opacity: 0.8;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 968px) {
+            .header { padding: 0 20px; }
+            .nav-links, .nav-dots { display: none; }
+
+            .page-layout {
+                display: block;
+                margin-top: 60px;
+            }
+            .images-col { display: none; } /* hidden on mobile, inline image shown instead */
+
+            .character-section {
+                padding: 32px 24px 48px;
+                min-height: auto;
+            }
+            .character-section::before {
+                content: '';
+                display: block;
+            }
+            .mobile-image {
+                display: flex !important;
+            }
+
+            .character-name { font-size: 32px; }
+        }
+
+        /* Mobile inline image (hidden on desktop) */
+        .mobile-image {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
+            padding: 32px 24px 24px;
+            gap: 12px;
+        }
+        .mobile-image .image-wrapper {
+            width: 240px;
+            height: 240px;
+        }
+        .mobile-image .step-indicator {
+            align-self: flex-start;
+        }
+    </style>
+</head>
+<body>
+
+
+
+    <header class="header">
+        <div class="logo">La Aventura</div>
+        <nav class="nav-links">
+            <a onclick="scrollToSection('chispa')">Diseño</a>
+            <a onclick="scrollToSection('forja')">Fabricación</a>
+            <a onclick="scrollToSection('ordenin')">Almacén</a>
+            <a onclick="scrollToSection('pixel')">Tecnología</a>
+            <a onclick="scrollToSection('rayo')">Transporte</a>
+            <a onclick="scrollToSection('exploradores')">Clientes</a>
+            <a onclick="scrollToSection('guia')">PO</a>
+        </nav>
+    </header>
+
+    <nav class="nav-dots">
+        <div class="dot active" onclick="scrollToSection('chispa')"></div>
+        <div class="dot" onclick="scrollToSection('forja')"></div>
+        <div class="dot" onclick="scrollToSection('ordenin')"></div>
+        <div class="dot" onclick="scrollToSection('pixel')"></div>
+        <div class="dot" onclick="scrollToSection('rayo')"></div>
+        <div class="dot" onclick="scrollToSection('exploradores')"></div>
+        <div class="dot" onclick="scrollToSection('guia')"></div>
+    </nav>
+
+    <div class="page-layout">
+
+        <!-- ══ LEFT: sticky image column ══ -->
+        <div class="images-col" id="images-col">
+
+            <div class="img-panel active" data-for="chispa">
+                <span class="step-indicator">Paso 01 / 06</span>
+                <div class="image-wrapper">
+                    <img class="character-image" src="chispa.png" alt="Chispa">
+                </div>
+            </div>
+
+            <div class="img-panel" data-for="forja">
+                <span class="step-indicator">Paso 02 / 06</span>
+                <div class="image-wrapper">
+                    <img class="character-image" src="Forja.png" alt="Forja">
+                </div>
+            </div>
+
+            <div class="img-panel" data-for="ordenin">
+                <span class="step-indicator">Paso 03 / 06</span>
+                <div class="image-wrapper">
+                    <img class="character-image" src="Ordeni_n.png" alt="Ordenín">
+                </div>
+            </div>
+
+            <div class="img-panel" data-for="pixel">
+                <span class="step-indicator">Paso 04 / 06</span>
+                <div class="image-wrapper">
+                    <img class="character-image" src="Pixel.png" alt="Pixel">
+                </div>
+            </div>
+
+            <div class="img-panel" data-for="rayo">
+                <span class="step-indicator">Paso 05 / 06</span>
+                <div class="image-wrapper">
+                    <img class="character-image" src="Rayo.png" alt="Rayo">
+                </div>
+            </div>
+
+            <div class="img-panel" data-for="exploradores">
+                <span class="step-indicator">Paso 06 / 06</span>
+                <div class="image-wrapper">
+                    <img class="character-image" src="Exploradores.png" alt="Los Exploradores">
+                </div>
+            </div>
+
+            <div class="img-panel" data-for="guia">
+                <span class="step-indicator">Coordinación</span>
+                <div class="image-wrapper">
+                    <img class="character-image" src="Gui_a.png" alt="Guía">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ══ RIGHT: scrollable content ══ -->
+        <div class="content-col">
+
+            <!-- CHISPA -->
+            <section class="character-section" id="chispa">
+                <!-- Mobile image -->
+                <div class="mobile-image">
+                    <span class="step-indicator">Paso 01 / 06</span>
+                    <div class="image-wrapper">
+                        <img class="character-image" src="chispa.png" alt="Chispa">
+                    </div>
+                </div>
+
+                <span class="role-tag">Diseño</span>
+                <h1 class="character-name">Chispa</h1>
+                <p class="character-title">El Ratón de las Ideas</p>
+                <div class="divider"></div>
+                <h2 class="section-title">Su misión</h2>
+                <p class="description">Chispa es el ratón mágico que imagina cómo será la ropa antes de que exista. Transforma pensamientos en dibujos brillantes. Es el primer paso del viaje de la camiseta mágica.</p>
+                <h2 class="section-title">Quién es</h2>
+                <p class="description">Vive en el Taller de las Ideas y tiene el poder de convertir sueños en diseños. Cuando alguien dice: <em>"¡Ojalá hubiera una camiseta con dragones azules!"</em> — Chispa lo escucha y empieza a dibujar.</p>
+                <div class="power-box">
+                    <p class="power-label">✦ Poder mágico</p>
+                    <p class="power-text">Cuando se emociona, su cola brilla ligeramente y deja un rastro de chispas doradas.</p>
+                </div>
+                <div class="stats-section">
+                    <h2 class="section-title">Habilidades</h2>
+                    <div class="stat-row"><span class="stat-label">Curiosidad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Creatividad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Atención al detalle</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Organización</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Trabajo en equipo</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                </div>
+                </div>
+                <div class="quote-box">
+                    <p class="quote-label">✦ Frase</p>
+                    <p class="quote">"Si lo imaginas, podemos crearlo"</p>
+                </div>
+                </div>
+            </section>
+
+            <!-- FORJA -->
+            <section class="character-section" id="forja">
+                <div class="mobile-image">
+                    <span class="step-indicator">Paso 02 / 06</span>
+                    <div class="image-wrapper"><img class="character-image" src="Forja.png" alt="Forja"></div>
+                </div>
+                <span class="role-tag">Fabricación</span>
+                <h1 class="character-name">Forja</h1>
+                <p class="character-title">El Constructor Preciso</p>
+                <div class="divider"></div>
+                <h2 class="section-title">Su misión</h2>
+                <p class="description">Forja es el ratón que convierte los dibujos en camisetas de verdad. Usa máquinas mágicas y telas suaves. Si algo no está bien hecho… ¡lo arregla!</p>
+                <p class="description">Es quien transforma la idea en algo real.</p>
+                <div class="power-box">
+                    <p class="power-label">✦ Poder mágico</p>
+                    <p class="power-text">Cuando trabaja, aparecen pequeños engranajes brillantes y líneas de costura luminosas en el aire.</p>
+                </div>
+                <div class="stats-section">
+                    <h2 class="section-title">Habilidades</h2>
+                    <div class="stat-row"><span class="stat-label">Curiosidad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Creatividad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Atención al detalle</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Organización</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Trabajo en equipo</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                </div>
+                </div>
+                </div>
+                <div class="complement-text">
+                    <p class="complement-label">✦ En el equipo</p>
+                    <p class="complement-body">Es el opuesto complementario de Chispa: menos ideas locas, más precisión.</p>
+                </div>
+            </section>
+
+            <!-- ORDENÍN -->
+            <section class="character-section" id="ordenin">
+                <div class="mobile-image">
+                    <span class="step-indicator">Paso 03 / 06</span>
+                    <div class="image-wrapper"><img class="character-image" src="Ordeni_n.png" alt="Ordenín"></div>
+                </div>
+                <span class="role-tag">Almacén</span>
+                <h1 class="character-name">Ordenín</h1>
+                <p class="character-title">El Guardián del Orden</p>
+                <div class="divider"></div>
+                <h2 class="section-title">Su misión</h2>
+                <p class="description">Ordenín se asegura de que cada camiseta esté en su sitio. Sabe exactamente dónde está cada prenda. Si buscas algo… ¡él lo encuentra!</p>
+                <div class="power-box">
+                    <p class="power-label">✦ Poder mágico</p>
+                    <p class="power-text">Hace que las cajas floten y se coloquen solas formando filas perfectas.</p>
+                </div>
+                <div class="stats-section">
+                    <h2 class="section-title">Habilidades</h2>
+                    <div class="stat-row"><span class="stat-label">Curiosidad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Creatividad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Atención al detalle</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Organización</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Trabajo en equipo</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                </div>
+                </div>
+                </div>
+                <div class="complement-text">
+                    <p class="complement-label">✦ En el equipo</p>
+                    <p class="complement-body">Es el rey del orden.</p>
+                </div>
+            </section>
+
+            <!-- PIXEL -->
+            <section class="character-section" id="pixel">
+                <div class="mobile-image">
+                    <span class="step-indicator">Paso 04 / 06</span>
+                    <div class="image-wrapper"><img class="character-image" src="Pixel.png" alt="Pixel"></div>
+                </div>
+                <span class="role-tag">Tecnología / Tienda Online</span>
+                <h1 class="character-name">Pixel</h1>
+                <p class="character-title">El Mago Digital</p>
+                <div class="divider"></div>
+                <h2 class="section-title">Su misión</h2>
+                <p class="description">Pixel hace que las camisetas aparezcan en la pantalla del ordenador. Saca fotos mágicas y pone el botón de "Comprar". Si la web se estropea… ¡lo arregla!</p>
+                <div class="power-box">
+                    <p class="power-label">✦ Poder mágico</p>
+                    <p class="power-text">Iconos digitales flotantes, botones luminosos y pequeñas pantallas holográficas.</p>
+                </div>
+                <div class="stats-section">
+                    <h2 class="section-title">Habilidades</h2>
+                    <div class="stat-row"><span class="stat-label">Curiosidad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Creatividad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Atención al detalle</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Organización</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Trabajo en equipo</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                </div>
+                </div>
+                </div>
+                <div class="complement-text">
+                    <p class="complement-label">✦ En el equipo</p>
+                    <p class="complement-body">Es creativo pero también técnico.</p>
+                </div>
+            </section>
+
+            <!-- RAYO -->
+            <section class="character-section" id="rayo">
+                <div class="mobile-image">
+                    <span class="step-indicator">Paso 05 / 06</span>
+                    <div class="image-wrapper"><img class="character-image" src="Rayo.png" alt="Rayo"></div>
+                </div>
+                <span class="role-tag">Transporte</span>
+                <h1 class="character-name">Rayo</h1>
+                <p class="character-title">El Viajero Veloz</p>
+                <div class="divider"></div>
+                <h2 class="section-title">Su misión</h2>
+                <p class="description">Rayo lleva las camisetas de un lugar a otro. Va rápido, pero con cuidado. Gracias a él, los pedidos llegan a casa.</p>
+                <div class="power-box">
+                    <p class="power-label">✦ Poder mágico</p>
+                    <p class="power-text">Estelas de luz suaves cuando corre y pequeños caminos brillantes que aparecen delante.</p>
+                </div>
+                <div class="stats-section">
+                    <h2 class="section-title">Habilidades</h2>
+                    <div class="stat-row"><span class="stat-label">Curiosidad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Creatividad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Atención al detalle</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Organización</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Trabajo en equipo</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                </div>
+                </div>
+                </div>
+                <div class="complement-text">
+                    <p class="complement-label">✦ En el equipo</p>
+                    <p class="complement-body">No es el más creativo, pero sin él nada llega.</p>
+                </div>
+            </section>
+
+            <!-- EXPLORADORES -->
+            <section class="character-section" id="exploradores">
+                <div class="mobile-image">
+                    <span class="step-indicator">Paso 06 / 06</span>
+                    <div class="image-wrapper"><img class="character-image" src="Exploradores.png" alt="Los Exploradores"></div>
+                </div>
+                <span class="role-tag">Clientes</span>
+                <h1 class="character-name">Los Exploradores</h1>
+                <p class="character-title">Los Ratones que Deciden</p>
+                <div class="divider"></div>
+                <h2 class="section-title">Su misión</h2>
+                <p class="description">Son los ratones que buscan ropa que les guste. Eligen colores, prueban cosas y dicen si están contentos o no.</p>
+                <p class="description">Son los que deciden qué funciona y qué no.</p>
+                <div class="power-box">
+                    <p class="power-label">✦ Poder mágico</p>
+                    <p class="power-text">Cuando les gusta algo, aparece un pequeño corazón brillante. Cuando no les gusta, aparece una nube pensativa.</p>
+                </div>
+                <div class="stats-section">
+                    <h2 class="section-title">Habilidades</h2>
+                    <div class="stat-row"><span class="stat-label">Curiosidad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Creatividad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Atención al detalle</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Organización</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Trabajo en equipo</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                </div>
+                </div>
+                </div>
+                <div class="complement-text">
+                    <p class="complement-label">✦ En el equipo</p>
+                    <p class="complement-body">Son importantes porque sin ellos no habría misión.</p>
+                </div>
+            </section>
+
+            <!-- GUÍA -->
+            <section class="character-section" id="guia">
+                <div class="mobile-image">
+                    <span class="step-indicator">Coordinación</span>
+                    <div class="image-wrapper"><img class="character-image" src="Gui_a.png" alt="Guía"></div>
+                </div>
+                <span class="role-tag">Product Owner</span>
+                <h1 class="character-name">Guía</h1>
+                <p class="character-title">El Ratón Coordinador</p>
+                <div class="divider"></div>
+                <h2 class="section-title">Su misión</h2>
+                <p class="description">Guía no fabrica. No transporta. No diseña.</p>
+                <p class="description">Pero habla con todos. Escucha problemas. Decide qué es lo más importante hacer primero.</p>
+                <p class="description">Su trabajo es que todo el equipo funcione como una orquesta.</p>
+                <div class="power-box">
+                    <p class="power-label">✦ Poder mágico</p>
+                    <p class="power-text">Tiene un pequeño mapa luminoso donde ve todo el proceso. Cuando algo se desordena, puede hacer aparecer hilos de luz que conectan a los ratones.</p>
+                </div>
+                <div class="stats-section">
+                    <h2 class="section-title">Habilidades</h2>
+                    <div class="stat-row"><span class="stat-label">Curiosidad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Creatividad</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Atención al detalle</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Organización</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star">★</i></div></div>
+                    <div class="stat-row"><span class="stat-label">Trabajo en equipo</span><div class="stat-stars"><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i><i class="star filled">★</i></div></div>
+                </div>
+                </div>
+                </div>
+                <div class="complement-text">
+                    <p class="complement-label">✦ En el equipo</p>
+                    <p class="complement-body">Su superpoder principal es unir al equipo.</p>
+                </div>
+            </section>
+
+        </div><!-- end content-col -->
+    </div><!-- end page-layout -->
+
+    <!-- Final message (outside page-layout, full width) -->
+    <section class="final-message">
+        <h2>Ningún ratón tiene todas las estrellas.<br>Pero cuando juntamos sus poderes...</h2>
+        <div class="stars-big">⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐</div>
+        <p>¡El equipo es imparable!</p>
+    </section>
+
+    <script>
+        const sections    = ['chispa','forja','ordenin','pixel','rayo','exploradores','guia'];
+        const dots        = document.querySelectorAll('.dot');
+        const navLinks    = document.querySelectorAll('.nav-links a');
+        const imgPanels   = document.querySelectorAll('.img-panel');
+
+        function setActive(id) {
+            // dots & nav
+            dots.forEach((d, i) => d.classList.toggle('active', sections[i] === id));
+            navLinks.forEach((a, i) => a.classList.toggle('active', sections[i] === id));
+            // image panels
+            imgPanels.forEach(p => p.classList.toggle('active', p.dataset.for === id));
+        }
+
+        // Scroll-based active section — works in both directions (up and down)
+        function getActiveSection() {
+            const triggerY = window.innerHeight * 0.15; // 15% from top = where the name appears
+            let active = sections[0];
+            for (const id of sections) {
+                const el = document.getElementById(id);
+                if (!el) continue;
+                const rect = el.getBoundingClientRect();
+                // Section top has passed the trigger line
+                if (rect.top <= triggerY) {
+                    active = id;
+                }
+            }
+            return active;
+        }
+
+        window.addEventListener('scroll', () => {
+            setActive(getActiveSection());
+        }, { passive: true });
+
+        // Init on load
+        setActive(getActiveSection());
+
+        function scrollToSection(id) {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
