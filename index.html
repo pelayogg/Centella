@@ -304,32 +304,49 @@
 
         /* ── Final message ── */
         .final-message {
-            background: #1a1a1a;
-            color: white;
-            padding: 100px 60px;
+            /* Full width — sits below both columns */
+            background: #fafafa;
+            border-top: 1px solid #e8e8e8;
+            padding: 80px 60px;
             text-align: center;
-            min-height: 50vh;
+        }
+        .final-inner {
+            max-width: 600px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            gap: 20px;
+        }
+        .final-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #bbb;
         }
         .final-message h2 {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 300;
-            margin-bottom: 24px;
-            line-height: 1.4;
+            line-height: 1.3;
+            color: #1a1a1a;
         }
-        .final-message .stars-big {
-            font-size: 48px;
-            letter-spacing: 8px;
-            margin: 20px 0;
+        .final-sub {
+            font-size: 16px;
+            color: #888;
+            font-weight: 300;
         }
-        .final-message p {
-            font-size: 18px;
-            opacity: 0.8;
-            max-width: 600px;
-            line-height: 1.6;
+        .final-characters {
+            display: flex;
+            gap: 16px;
+            font-size: 36px;
+            margin: 8px 0;
+        }
+        .final-cta {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+            letter-spacing: 0.02em;
         }
 
         /* ── Responsive ── */
@@ -693,19 +710,40 @@
         </div><!-- end content-col -->
     </div><!-- end page-layout -->
 
-    <!-- Final message (outside page-layout, full width) -->
-    <section class="final-message">
-        <h2>Ningún ratón tiene todas las estrellas.<br>Pero cuando juntamos sus poderes...</h2>
-        <div class="stars-big">⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐</div>
-        <p>¡El equipo es imparable!</p>
-    </section>
     </div><!-- end right-col -->
+
+    <!-- Final message: full width, outside right-col -->
+    <section class="final-message">
+        <div class="final-inner">
+            <p class="final-label">✦ El equipo</p>
+            <h2>Ningún ratón tiene<br>todas las estrellas.</h2>
+            <p class="final-sub">Pero cuando juntamos sus poderes...</p>
+            <div class="final-characters">
+                <span>🎨</span><span>🏭</span><span>📦</span><span>💻</span><span>🚚</span><span>🛍️</span><span>🧭</span>
+            </div>
+            <p class="final-cta">¡El equipo es imparable!</p>
+        </div>
+    </section>
 
     <script>
         const sections    = ['chispa','forja','ordenin','pixel','rayo','exploradores','guia'];
         const dots        = document.querySelectorAll('.dot');
         const navLinks    = document.querySelectorAll('.nav-links a');
         const imgPanels   = document.querySelectorAll('.img-panel');
+
+        // Hide fixed image column when footer is visible
+        const finalMsg = document.querySelector('.final-message');
+        const imagesCol = document.getElementById('images-col');
+        const footerObserver = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                imagesCol.style.opacity = e.isIntersecting ? '0' : '1';
+                imagesCol.style.pointerEvents = e.isIntersecting ? 'none' : 'auto';
+            });
+        }, { threshold: 0.1 });
+        if (finalMsg) footerObserver.observe(finalMsg);
+
+        // Smooth opacity transition on images-col
+        imagesCol.style.transition = 'opacity 0.4s ease';
 
         function setActive(id) {
             // dots & nav
